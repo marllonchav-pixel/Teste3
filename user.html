@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Formulário — Teste Usuário</title>
+<style>
+  body{font-family:Inter,system-ui,Arial;background:#f6f8fb;margin:0;padding:20px;color:#111}
+  .card{background:#fff;border:1px solid #e3e7ee;border-radius:10px;padding:16px;max-width:700px;margin:8px auto}
+  label{display:block;margin-top:10px;font-size:14px}
+  input,button{width:100%;padding:10px;border-radius:8px;border:1px solid #ccd6e6;margin-top:6px}
+  button{background:#2563eb;color:#fff;border:0;cursor:pointer}
+  .small{font-size:13px;color:#556077;margin-top:8px}
+  .hint{font-size:12px;color:#9aa6bf;margin-top:6px}
+  .row{display:flex;gap:12px}
+  @media(max-width:720px){.row{flex-direction:column}}
+</style>
+</head>
+<body>
+  <div class="card">
+    <h2>Formulário de teste</h2>
+    <p class="small">Preencha com dados fictícios para testes. Não use dados reais.</p>
+
+    <form id="form">
+      <label>Nome (opcional)</label>
+      <input id="name" type="text" placeholder="Nome">
+
+      <label>Email</label>
+      <input id="email" type="email" placeholder="email@exemplo.com" required autocomplete="email">
+
+      <label>Senha</label>
+      <input id="password" type="text" placeholder="senha" required>
+
+      <label>CPF (apenas dígitos)</label>
+      <input id="cpf" type="text" placeholder="00000000000" required>
+
+      <div style="height:12px"></div>
+      <div class="row">
+        <button type="submit">Enviar</button>
+        <button type="button" id="btnClear" style="background:#64748b">Limpar</button>
+      </div>
+      <div class="hint">Para o administrador ver os dados, abra <code>admin.html</code> e faça login.</div>
+      <div id="msg" class="small"></div>
+    </form>
+  </div>
+
+<script>
+/*
+  index.html — salva registros em localStorage com chave STORAGE_KEY
+  Compatível com admin.html (mesma chave)
+*/
+
+const STORAGE_KEY = 'test_users_serverless_demo'
+
+function onlyDigits(s){ return String(s||'').replace(/\D/g,'') }
+function uid(){ return 'id'+Date.now().toString(36)+Math.random().toString(36).slice(2,6) }
+
+const form = document.getElementById('form')
+const nameInp = document.getElementById('name')
+const emailInp = document.getElementById('email')
+const passInp = document.getElementById('password')
+const cpfInp = document.getElementById('cpf')
+const msg = document.getElementById('msg')
+const btnClear = document.getElementById('btnClear')
+
+function loadUsers(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]') } catch(e){ return [] }
+}
+function saveUsers(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)) }
+
+form.addEventListener('submit', e=>{
+  e.preventDefault()
+  const name = nameInp.value.trim()
+  const email = emailInp.value.trim()
+  const password = passInp.value
+  const cpf = onlyDigits(cpfInp.value)
+  if(!email || !password || !cpf){ msg.textContent = 'Email, senha e CPF são obrigatórios.'; return }
+  const users = loadUsers()
+  users.push({ id: uid(), name, email, password, cpf, createdAt: new Date().toISOString() })
+  saveUsers(users)
+  msg.textContent = 'Registro salvo. Obrigado.'
+  form.reset()
+  setTimeout(()=> msg.textContent = '', 1800)
+})
+
+btnClear.addEventListener('click', ()=> form.reset())
+
+// focus pra agilidade
+emailInp.focus()
+</script>
+</body>
+</html>
